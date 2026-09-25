@@ -1,6 +1,7 @@
 import streamlit as st
 import mysql.connector
 from mysql.connector import Error
+from pathlib import Path
 
 # ==================================================
 # PAGE SETTINGS
@@ -8,8 +9,10 @@ from mysql.connector import Error
 st.set_page_config(
     page_title="Steward5D",
     page_icon="🦠",
-    layout="centered"
+    layout="centered",
+    initial_sidebar_state="expanded"
 )
+
 
 
 # ==================================================
@@ -132,14 +135,26 @@ def reset_case_state():
 with st.sidebar:
     st.header("⚙️ Simulator Controls")
     st.write("Use this panel to manage your session or start over.")
-    
     if st.button("🔄 Reset Simulator / New User", use_container_width=True):
         reset_case_state()
         st.rerun()
 
     st.divider()
-    st.caption("Steward5D Simulator v1.0")
+    st.subheader("Collaborators")
 
+    def render_sidebar_logo(filename):
+        """Render a logo only if the file exists in the app folder."""
+        logo_path = Path(__file__).resolve().parent / filename
+        if not logo_path.exists():
+            st.warning(f"Missing logo asset: {filename}")
+            return
+        st.image(str(logo_path), use_container_width=True)
+
+    for logo_name in ["logo1.png", "logo2.png", "logo3.png"]:
+        render_sidebar_logo(logo_name)
+
+    st.divider()
+    st.caption("Steward5D Simulator v1.0")
 
 # ==================================================
 # TITLE & HEADER
