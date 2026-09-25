@@ -14,7 +14,6 @@ st.set_page_config(
 )
 
 
-
 # ==================================================
 # DATABASE CONFIGURATION
 # ==================================================
@@ -127,6 +126,11 @@ def reset_case_state():
     st.session_state["retry_score"] = None
     st.session_state.pop("scores", None)
     st.session_state.pop("total_score", None)
+    
+    # Clear stored radio button keys so they reset to None
+    for k in list(st.session_state.keys()):
+        if k.startswith("c1_") or k.startswith("c2_"):
+            del st.session_state[k]
 
 
 # ==================================================
@@ -274,6 +278,13 @@ if case == "Acute Sore Throat":
         )
     }
 
+    att = st.session_state['attempt']
+
+    # Initialize keys to None BEFORE calling st.radio
+    for k in [f"c1_diag_{att}", f"c1_drug_{att}", f"c1_dose_{att}", f"c1_dur_{att}", f"c1_deesc_{att}"]:
+        if k not in st.session_state:
+            st.session_state[k] = None
+
     # 1. DIAGNOSIS
     st.subheader("1️⃣ Diagnosis")
     diagnosis = st.radio(
@@ -284,7 +295,8 @@ if case == "Acute Sore Throat":
             "Uncomplicated lower urinary tract infection",
             "Pyelonephritis"
         ],
-        key=f"case1_diagnosis_att{st.session_state['attempt']}"
+        index=None,
+        key=f"c1_diag_{att}"
     )
 
     # 2. DRUG
@@ -297,7 +309,8 @@ if case == "Acute Sore Throat":
             "Start two antibiotics simultaneously",
             "Use an antibiotic routinely for all sore throats"
         ],
-        key=f"case1_drug_att{st.session_state['attempt']}"
+        index=None,
+        key=f"c1_drug_{att}"
     )
 
     # 3. DOSE
@@ -310,7 +323,8 @@ if case == "Acute Sore Throat":
             "Use a low antibiotic dose routinely",
             "Double the usual antibiotic dose"
         ],
-        key=f"case1_dose_att{st.session_state['attempt']}"
+        index=None,
+        key=f"c1_dose_{att}"
     )
 
     # 4. DURATION
@@ -323,7 +337,8 @@ if case == "Acute Sore Throat":
             "14 days of antibiotics",
             "Continue antibiotics indefinitely"
         ],
-        key=f"case1_duration_att{st.session_state['attempt']}"
+        index=None,
+        key=f"c1_dur_{att}"
     )
 
     # 5. DE-ESCALATION
@@ -338,7 +353,8 @@ if case == "Acute Sore Throat":
             "Increase antibiotic exposure to prevent complications",
             "Continue antibiotics regardless of clinical changes"
         ],
-        key=f"case1_deescalation_att{st.session_state['attempt']}"
+        index=None,
+        key=f"c1_deesc_{att}"
     )
 
     user_answers = {
@@ -352,20 +368,23 @@ if case == "Acute Sore Throat":
     st.divider()
 
     if st.button("Submit Case", type="primary"):
-        scores = calculate_score(user_answers, correct_answers)
-        total_score = sum(scores.values())
-
-        if st.session_state["attempt"] == 1:
-            st.session_state["first_score"] = total_score
+        if None in user_answers.values():
+            st.warning("⚠️ Please select an answer for all five questions before submitting.")
         else:
-            st.session_state["retry_score"] = total_score
+            scores = calculate_score(user_answers, correct_answers)
+            total_score = sum(scores.values())
 
-        st.session_state["scores"] = scores
-        st.session_state["total_score"] = total_score
-        st.session_state["submitted"] = True
+            if st.session_state["attempt"] == 1:
+                st.session_state["first_score"] = total_score
+            else:
+                st.session_state["retry_score"] = total_score
 
-        # LOG TO CLEVER CLOUD MYSQL DATABASE
-        log_attempt_to_db(user_id, "Acute Sore Throat", st.session_state["attempt"], total_score, scores)
+            st.session_state["scores"] = scores
+            st.session_state["total_score"] = total_score
+            st.session_state["submitted"] = True
+
+            # LOG TO CLEVER CLOUD MYSQL DATABASE
+            log_attempt_to_db(user_id, "Acute Sore Throat", st.session_state["attempt"], total_score, scores)
 
     if st.session_state.get("submitted", False):
         st.divider()
@@ -463,6 +482,13 @@ elif case == "Uncomplicated Lower UTI":
         )
     }
 
+    att = st.session_state['attempt']
+
+    # Initialize keys to None BEFORE calling st.radio
+    for k in [f"c2_diag_{att}", f"c2_drug_{att}", f"c2_dose_{att}", f"c2_dur_{att}", f"c2_deesc_{att}"]:
+        if k not in st.session_state:
+            st.session_state[k] = None
+
     # 1. DIAGNOSIS
     st.subheader("1️⃣ Diagnosis")
     diagnosis_uti = st.radio(
@@ -473,7 +499,8 @@ elif case == "Uncomplicated Lower UTI":
             "Asymptomatic Bacteriuria",
             "Pelvic Inflammatory Disease"
         ],
-        key=f"case2_diagnosis_att{st.session_state['attempt']}"
+        index=None,
+        key=f"c2_diag_{att}"
     )
 
     # 2. DRUG
@@ -486,7 +513,8 @@ elif case == "Uncomplicated Lower UTI":
             "Cefuroxime (Broad-spectrum oral cephalosporin)",
             "No antibiotic treatment is indicated"
         ],
-        key=f"case2_drug_att{st.session_state['attempt']}"
+        index=None,
+        key=f"c2_drug_{att}"
     )
 
     # 3. DOSE
@@ -499,7 +527,8 @@ elif case == "Uncomplicated Lower UTI":
             "100 mg QDS (4 times daily)",
             "200 mg BD"
         ],
-        key=f"case2_dose_att{st.session_state['attempt']}"
+        index=None,
+        key=f"c2_dose_{att}"
     )
 
     # 4. DURATION
@@ -512,7 +541,8 @@ elif case == "Uncomplicated Lower UTI":
             "10 to 14 days",
             "21 days"
         ],
-        key=f"case2_duration_att{st.session_state['attempt']}"
+        index=None,
+        key=f"c2_dur_{att}"
     )
 
     # 5. DE-ESCALATION
@@ -526,7 +556,8 @@ elif case == "Uncomplicated Lower UTI":
             "Extend course to 14 days to prevent recurrence",
             "Repeat urine culture routinely post-treatment regardless of symptom resolution"
         ],
-        key=f"case2_deescalation_att{st.session_state['attempt']}"
+        index=None,
+        key=f"c2_deesc_{att}"
     )
 
     user_answers_uti = {
@@ -540,20 +571,23 @@ elif case == "Uncomplicated Lower UTI":
     st.divider()
 
     if st.button("Submit Case", type="primary"):
-        scores = calculate_score(user_answers_uti, correct_answers_uti)
-        total_score = sum(scores.values())
-
-        if st.session_state["attempt"] == 1:
-            st.session_state["first_score"] = total_score
+        if None in user_answers_uti.values():
+            st.warning("⚠️ Please select an answer for all five questions before submitting.")
         else:
-            st.session_state["retry_score"] = total_score
+            scores = calculate_score(user_answers_uti, correct_answers_uti)
+            total_score = sum(scores.values())
 
-        st.session_state["scores"] = scores
-        st.session_state["total_score"] = total_score
-        st.session_state["submitted"] = True
+            if st.session_state["attempt"] == 1:
+                st.session_state["first_score"] = total_score
+            else:
+                st.session_state["retry_score"] = total_score
 
-        # LOG TO CLEVER CLOUD MYSQL DATABASE
-        log_attempt_to_db(user_id, "Uncomplicated Lower UTI", st.session_state["attempt"], total_score, scores)
+            st.session_state["scores"] = scores
+            st.session_state["total_score"] = total_score
+            st.session_state["submitted"] = True
+
+            # LOG TO CLEVER CLOUD MYSQL DATABASE
+            log_attempt_to_db(user_id, "Uncomplicated Lower UTI", st.session_state["attempt"], total_score, scores)
 
     if st.session_state.get("submitted", False):
         st.divider()
